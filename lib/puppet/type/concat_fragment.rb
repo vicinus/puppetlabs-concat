@@ -30,6 +30,17 @@ Puppet::Type.newtype(:concat_fragment) do
     end
   end
 
+  newparam(:data_content) do
+    desc <<-DOC
+      Include data concat
+    DOC
+
+    defaultto false
+    validate do |value|
+      raise ArgumentError, _('Content must be True or False') unless [TrueClass, FalseClass].include?(value.class)
+    end
+  end
+
   newparam(:content) do
     desc <<-DOC
       Supplies the content of the fragment. Note: You must supply either a content parameter or a source parameter. Valid options: a string
@@ -91,5 +102,28 @@ Puppet::Type.newtype(:concat_fragment) do
 
     # Check if both are set, if so rais error
     raise Puppet::ParseError, _("Can't use 'source' and 'content' at the same time") if !self[:source].nil? && !self[:content].nil?
+  end
+
+  def data_fragments
+    # Collect data fragments that target this resource by title or tag.
+    @fragments ||= catalog.resources.map { |resource|
+      next unless resource.is_a?(Puppet::Type.type(:concat_data_fragment))
+
+      if resource[:target] == title and resource[:data].nil? == false
+        resource
+      end
+    }.compact
+  end
+
+  def generate_content
+    return @generated_content if @generated_content
+    @generated_content = ''
+
+    @data = data_fragments.sort_by { |r|
+      [r[:order], r[:name]]
+    }.map { |r| r[:data] }
+
+    template = ERB.new(self[:content], 0, "-")
+    template.result(binding)
   end
 end

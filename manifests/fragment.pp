@@ -20,6 +20,7 @@ define concat::fragment(
   Optional[String]                   $content = undef,
   Optional[Variant[String, Array]]   $source  = undef,
   Variant[String, Integer]           $order   = '10',
+  Boolean                            $data_content = false,
 ) {
   $resource = 'Concat::Fragment'
 
@@ -41,5 +42,6 @@ define concat::fragment(
     order   => $order,
     content => $content,
     source  => $source,
+    data_content => $data_content,
   }
 }

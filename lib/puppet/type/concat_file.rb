@@ -295,7 +295,9 @@ Puppet::Type.newtype(:concat_file) do
   end
 
   def fragment_content(r)
-    if r[:content].nil? == false
+    if r[:data_content] == true
+      fragment_content = r.generate_content
+    elsif r[:content].nil? == false
       fragment_content = r[:content]
     elsif r[:source].nil? == false
       @source = nil
